@@ -2,13 +2,18 @@ package io.virtualapp;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.support.multidex.MultiDexApplication;
 
 import com.flurry.android.FlurryAgent;
 import com.lody.virtual.client.core.VirtualCore;
+import com.lody.virtual.client.hook.providers.InternalProviderHook;
 import com.lody.virtual.client.hook.proxies.clipboard.ClipBoardStub;
 import com.lody.virtual.client.stub.VASettings;
 
+import java.lang.reflect.InvocationTargetException;
+
+import io.virtualapp.clipboard.ClipboardHookHelper;
 import io.virtualapp.delegate.MyAppRequestListener;
 import io.virtualapp.delegate.MyComponentDelegate;
 import io.virtualapp.delegate.MyPhoneInfoDelegate;
@@ -47,11 +52,18 @@ public class VApp extends MultiDexApplication {
         VirtualCore virtualCore = VirtualCore.get();
 
         //剪切板
-        ClipBoardStub clipBoardStub=new ClipBoardStub();
+//        ClipBoardStub clipBoardStub=new ClipBoardStub();
+//        try {
+//            clipBoardStub.inject();
+//        } catch (Throwable throwable) {
+//            throwable.printStackTrace();
+//        }
+
+        //hook剪切板
         try {
-            clipBoardStub.inject();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            ClipboardHookHelper.hookClipboardService();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         virtualCore.initialize(new VirtualCore.VirtualInitializer() {
