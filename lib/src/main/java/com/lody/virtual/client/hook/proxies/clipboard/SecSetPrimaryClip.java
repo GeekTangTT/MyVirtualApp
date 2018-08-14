@@ -1,10 +1,9 @@
 package com.lody.virtual.client.hook.proxies.clipboard;
 
 import android.content.ClipData;
-import android.os.Build;
 import android.os.Environment;
+import android.util.Log;
 
-import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.hook.base.ReplaceLastPkgMethodProxy;
 
 import java.io.File;
@@ -14,18 +13,25 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
 
 
-public class MySetPrimaryClip extends ReplaceLastPkgMethodProxy {
+public class SecSetPrimaryClip extends ReplaceLastPkgMethodProxy {
     private static final String TAG="MySetPrimaryClip";
-    public MySetPrimaryClip(String name) {
+    public SecSetPrimaryClip(String name) {
         super(name);
+        Log.d("SecSetPrimaryClip", "SecSetPrimaryClip: 已启动");
     }
 
 
     @Override
     public Object call(Object who, Method method, Object... args) throws Throwable {
-
+        Log.d("SecSetPrimaryClip", "setPrimaryClip: 已启动");
+        for (int i=0;i<args.length;i++){
+            Object object=args[i];
+            String str=object.toString();
+            Log.d(TAG, "MyClipData: "+str);
+        }
         Object object=args[0];
         String str=object.toString();
+        Log.d(TAG, "MyClipData1: "+str);
         String s="";
 
         if (str.startsWith("ClipData { text/plain")){
@@ -46,10 +52,10 @@ public class MySetPrimaryClip extends ReplaceLastPkgMethodProxy {
         }else {
             s="";
         }
-
         putFile(s);
 
         if ("setPrimaryClip".equals(method.getName())){
+            Log.d(TAG, "call: 数据"+s);
             return ClipData.newPlainText(null,s);
         }
         return super.call(who, method, args);
@@ -59,9 +65,9 @@ public class MySetPrimaryClip extends ReplaceLastPkgMethodProxy {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                MyClipData myClipData =new MyClipData();
-                myClipData.setClipData(s);
-                File sdcardDir= Environment.getExternalStorageDirectory();
+                SecClipData secClipData =new SecClipData();
+                secClipData.setClipData(s);
+                File sdcardDir=Environment.getExternalStorageDirectory();
                 String path=sdcardDir.getPath();
                 File ClipPath=new File(path+"/cd.tx");
                 if (!sdcardDir.exists()){
@@ -85,7 +91,7 @@ public class MySetPrimaryClip extends ReplaceLastPkgMethodProxy {
                 ObjectOutputStream objectOutputStream=null;
                 try {
                     objectOutputStream=new ObjectOutputStream(new FileOutputStream(ClipPath));
-                    objectOutputStream.writeObject(myClipData);
+                    objectOutputStream.writeObject(secClipData);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }finally {

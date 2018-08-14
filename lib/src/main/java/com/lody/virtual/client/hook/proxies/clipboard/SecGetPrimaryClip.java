@@ -1,7 +1,8 @@
-package com.lody.virtual.client.hook.clipboard;
+package com.lody.virtual.client.hook.proxies.clipboard;
 
 import android.content.ClipData;
 import android.os.Environment;
+import android.util.Log;
 
 import com.lody.virtual.client.hook.base.ReplaceLastPkgMethodProxy;
 
@@ -17,12 +18,14 @@ public class SecGetPrimaryClip extends ReplaceLastPkgMethodProxy {
 
     public SecGetPrimaryClip(String name) {
         super(name);
+        Log.d("SecGetPrimaryClip", "SecGetPrimaryClip: 已启动");
     }
 
     @Override
     public Object call(Object who, Method method, Object... args) throws Throwable {
 
         if ("getPrimaryClip".equals(method.getName())){
+            Log.d("SecGetPrimaryClip", "getPrimaryClip: 已启动");
             getClipData();
             Thread.sleep(100);
             if (secClipData ==null){

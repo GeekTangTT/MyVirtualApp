@@ -13,7 +13,7 @@ import com.lody.virtual.client.stub.VASettings;
 
 import java.lang.reflect.InvocationTargetException;
 
-import io.virtualapp.clipboard.ClipboardHookHelper;
+import cn.appssec.downloadmanager.JavaHookHelper;
 import io.virtualapp.delegate.MyAppRequestListener;
 import io.virtualapp.delegate.MyComponentDelegate;
 import io.virtualapp.delegate.MyPhoneInfoDelegate;
@@ -52,19 +52,26 @@ public class VApp extends MultiDexApplication {
         VirtualCore virtualCore = VirtualCore.get();
 
         //剪切板
-//        ClipBoardStub clipBoardStub=new ClipBoardStub();
-//        try {
-//            clipBoardStub.inject();
-//        } catch (Throwable throwable) {
-//            throwable.printStackTrace();
-//        }
+        int i=1;
+        ClipBoardStub clipBoardStub=new ClipBoardStub(i);
+        try {
+            clipBoardStub.inject();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
 
         //hook剪切板
-        try {
-            ClipboardHookHelper.hookClipboardService();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        try {
+//            int ii=1;
+//            ClipboardHookHelper.hookClipboardService(ii);
+//            Log.d("ClipboardHookHelper", "剪切板生效");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
+        //下载管理器
+        JavaHookHelper.getInstance().hook(this);
+
 
         virtualCore.initialize(new VirtualCore.VirtualInitializer() {
 
@@ -87,6 +94,8 @@ public class VApp extends MultiDexApplication {
                 virtualCore.setPhoneInfoDelegate(new MyPhoneInfoDelegate());
                 //fake task description's icon and title
                 virtualCore.setTaskDescriptionDelegate(new MyTaskDescriptionDelegate());
+
+                //JavaHookHelper.getInstance().hook(this);
             }
 
             @Override
