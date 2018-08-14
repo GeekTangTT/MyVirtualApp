@@ -7,6 +7,7 @@ import android.app.job.IJobService;
 import android.app.job.JobParameters;
 import android.app.job.JobScheduler;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Build;
@@ -37,11 +38,13 @@ public class StubJob extends Service {
     private static final String TAG = StubJob.class.getSimpleName();
     private final SparseArray<JobSession> mJobSessions = new SparseArray<>();
     private JobScheduler mScheduler;
+    private int mJobId;
     private final IJobService mService = new IJobService.Stub() {
 
         @Override
         public void startJob(JobParameters jobParams) throws RemoteException {
             int jobId = jobParams.getJobId();
+            mJobId = jobId;
             IBinder binder = mirror.android.app.job.JobParameters.callback.get(jobParams);
             IJobCallback callback = IJobCallback.Stub.asInterface(binder);
             Map.Entry<JobId, JobConfig> entry = get().findJobByVirtualJobId(jobId);
@@ -65,7 +68,8 @@ public class StubJob extends Service {
                         service.putExtra("_VA_|_user_id_", VUserHandle.getUserId(key.vuid));
                         boolean bound = false;
                         try {
-                            bound = bindService(service, session, 0);
+                            //bound = bindService(service, session, 0);
+                            bound = bindService(service,session, Context.BIND_AUTO_CREATE);
                         } catch (Throwable e) {
                             VLog.e(TAG, e);
                         }
@@ -117,6 +121,15 @@ public class StubJob extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return mService.asBinder();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        JobSession jobSession = mJobSessions.get(mJobId);
+        if (jobSession != null) {
+            unbindService(jobSession);
+        }
     }
 
     private final class JobSession extends IJobCallback.Stub implements ServiceConnection {
