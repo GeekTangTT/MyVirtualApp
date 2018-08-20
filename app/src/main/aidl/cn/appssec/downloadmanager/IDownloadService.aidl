@@ -7,12 +7,14 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import java.lang.String;
 import android.content.Context;
+import cn.appssec.downloadmanager.Request;
 interface IDownloadService {
     /**
      * Demonstrates some basic types that you can use as parameters
      * and return values in AIDL.
      */
-   long enqueue(in AidlRequest request);
+   //long enqueue(in AidlRequest request);
+      long enqueue(in Request request);
 
    Uri getDownloadUri(long id);
 

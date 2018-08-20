@@ -3,6 +3,7 @@ package cn.appssec.downloadmanager;
 import android.app.DownloadManager;
 import android.content.ComponentName;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -11,12 +12,16 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
+import android.util.Pair;
 
 import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.ipc.VActivityManager;
 import com.taobao.android.dexposed.DexposedBridge;
+import com.taobao.android.dexposed.XC_MethodHook;
 import com.taobao.android.dexposed.XC_MethodReplacement;
 import com.taobao.android.dexposed.XposedHelpers;
+
+import java.util.List;
 
 import cn.appssec.downloadmanager.AidlRequest;
 import cn.appssec.downloadmanager.IDownloadService;
@@ -62,20 +67,69 @@ public class JavaHookHelper {
 //                IIntentReceiver
                 DownloadManager.Request request = (DownloadManager.Request) param.args[0];
                 Object objUri = XposedHelpers.getObjectField(request, "mUri");
-                String uri = objUri.toString();
+                Uri uri = (Uri) objUri;
+                Request myRequest = new Request(uri);
+
+                Object destinationUri = XposedHelpers.getObjectField(request, "mDestinationUri");
+                Uri dest= (Uri) destinationUri;
+                Log.d(TAG, "dest: "+dest);
+                myRequest.setDestinationUri(dest);
+
+                Object mRequestHeadersObj=XposedHelpers.getObjectField(request,"mRequestHeaders");
+                List<Pair<String, String>> mRequestHeaders= (List<Pair<String, String>>) mRequestHeadersObj;
+
+                Object mTitleObj=XposedHelpers.getObjectField(request,"mTitle");
+                CharSequence mTitle= (CharSequence) mTitleObj;
+                myRequest.setTitle(mTitle);
+
+
+                Object mDescriptionObj=XposedHelpers.getObjectField(request,"mDescription");
+                CharSequence mDescription= (CharSequence) mDescriptionObj;
+                myRequest.setDescription(mDescription);
+
+                Object mMimeTypeObj=XposedHelpers.getObjectField(request,"mMimeType");
+                String mMimeType= (String) mMimeTypeObj;
+                myRequest.setMimeType(mMimeType);
+
+                Object mAllowedNetworkTypesObj=XposedHelpers.getObjectField(request,"mAllowedNetworkTypes");
+                int mAllowedNetworkTypes= (int) mAllowedNetworkTypesObj;
+                myRequest.setAllowedNetworkTypes(mAllowedNetworkTypes);
+
+                Object mRoamingAllowedObj=XposedHelpers.getObjectField(request,"mRoamingAllowed");
+                boolean mRoamingAllowed= (boolean) mRoamingAllowedObj;
+                myRequest.setAllowedOverRoaming(mRoamingAllowed);
+
+                Object mMeteredAllowedObj=XposedHelpers.getObjectField(request,"mMeteredAllowed");
+                boolean mMeteredAllowed= (boolean) mMeteredAllowedObj;
+                myRequest.setAllowedOverMetered(mMeteredAllowed);
+
+                Object mFlagsObj=XposedHelpers.getObjectField(request,"mFlags");
+                int mFlags= (int) mFlagsObj;
+
+                Object mIsVisibleInDownloadsUiObj=XposedHelpers.getObjectField(request,"mIsVisibleInDownloadsUi");
+                boolean mIsVisibleInDownloadsUi= (boolean) mIsVisibleInDownloadsUiObj;
+                myRequest.setVisibleInDownloadsUi(mIsVisibleInDownloadsUi);
+
+                Object mScannableObj=XposedHelpers.getObjectField(request,"mScannable");
+                boolean mScannable= (boolean) mScannableObj;
+                myRequest.allowScanningByMediaScanner();
+
+                Object mUseSystemCacheObj=XposedHelpers.getObjectField(request,"mUseSystemCache");
+                boolean mUseSystemCache= (boolean) mUseSystemCacheObj;
+                myRequest.setDestinationToSystemCache();
+
+
                 long id = 0L;
                 if (mIDownloadService == null) {
                     Log.d(TAG, " mIDownloadService is null");
                 } else {
-//                    id = mIDownloadService.enqueue(new AidlRequest(uri, destination, mimeType));
-                    id = mIDownloadService.enqueue(new AidlRequest(uri, null, null));
-                    Log.d("Q_M", "replaceHookedMethod ----->" + objUri.toString());
+                    id = mIDownloadService.enqueue(myRequest);
+                    //Log.d("Q_M", "replaceHookedMethod ----->" + objUri.toString());
                     Log.d(TAG, " enqueue id : " + id);
                 }
                 return id;
             }
         });
-
 
         DexposedBridge.findAndHookMethod(DownloadManager.class, "query", DownloadManager.Query.class, new XC_MethodReplacement() {
             Cursor cursor;
